@@ -36,37 +36,55 @@
                                 class="px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap
                                 @if ($order->status === 'diterima') bg-green-100 text-green-700 
                                 @elseif($order->status === 'diproses') bg-orange-100 text-orange-700 
-                                @elseif($order->status === 'selesai') bg-teal-100 text-teal-700 
-                                @elseif($order->status === 'diambil') bg-purple-100 text-purple-700 @endif">
-                                {{ ucfirst($order->status) }}
+                                @elseif($order->status === 'siap_diambil') bg-teal-100 text-teal-700 
+                                @elseif($order->status === 'selesai') bg-purple-100 text-purple-700 @endif">
+                                {{ str_replace('_', ' ', ucfirst($order->status)) }}
                             </span>
                         </div>
                         <p class="mt-1 text-sm text-gray-600">Pesanan dibuat pada
                             {{ $order->created_at->format('d M Y H:i') }}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        @if ($order->status !== 'diambil')
+                        @if ($order->status !== 'selesai')
                             @if ($order->status === 'diterima' || $order->status === 'diproses')
                                 <button type="button" data-status="diproses" onclick="updateStatus('diproses')"
                                     class="status-button inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-orange-100 text-orange-800 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all">
                                     <span class="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>
                                     Diproses
                                 </button>
-                            @endif
-
-                            @if ($order->status === 'diproses' || $order->status === 'selesai')
-                                <button type="button" data-status="selesai" onclick="updateStatus('selesai')"
-                                    class="status-button inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all">
-                                    <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5"></span>
-                                    Selesai
+                            @else
+                                <button type="button" disabled
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
+                                    <span class="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></span>
+                                    Diproses
                                 </button>
                             @endif
 
-                            @if ($order->status === 'selesai')
-                                <button type="button" data-status="diambil" onclick="updateStatus('diambil')"
+                            @if ($order->status === 'diproses')
+                                <button type="button" data-status="siap_diambil" onclick="updateStatus('siap_diambil')"
+                                    class="status-button inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all">
+                                    <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5"></span>
+                                    Siap Diambil
+                                </button>
+                            @else
+                                <button type="button" disabled
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
+                                    <span class="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></span>
+                                    Siap Diambil
+                                </button>
+                            @endif
+
+                            @if ($order->status === 'siap_diambil')
+                                <button type="button" data-status="selesai" onclick="updateStatus('selesai')"
                                     class="status-button inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all">
                                     <span class="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
-                                    Diambil
+                                    Selesai
+                                </button>
+                            @else
+                                <button type="button" disabled
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
+                                    <span class="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></span>
+                                    Selesai
                                 </button>
                             @endif
                         @endif

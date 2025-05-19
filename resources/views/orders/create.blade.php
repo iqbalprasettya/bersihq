@@ -51,7 +51,7 @@
                         </div>
                         <div class="relative">
                             <select name="customer_id" id="customer_id"
-                                class="appearance-none w-full rounded-xl bg-gray-50 border-2 border-transparent text-base focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 pl-5 pr-12 py-4 cursor-pointer hover:bg-gray-100">
+                                class="select2-customer w-full rounded-xl bg-gray-50 border-2 border-transparent text-base focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 pl-5 pr-12 py-4 cursor-pointer hover:bg-gray-100">
                                 <option value="">Pilih pelanggan</option>
                                 @foreach ($customers as $customer)
                                     <option value="{{ $customer->id }}"
@@ -217,6 +217,33 @@
 
     @push('scripts')
         <script>
+            // Inisialisasi Select2
+            $(document).ready(function() {
+                $('.select2-customer').select2({
+                    theme: 'classic',
+                    width: '100%',
+                    placeholder: 'Cari nama pelanggan...',
+                    allowClear: true,
+                    language: {
+                        noResults: function() {
+                            return "Pelanggan tidak ditemukan";
+                        },
+                        searching: function() {
+                            return "Mencari...";
+                        }
+                    }
+                });
+
+                // Styling untuk Select2
+                $('.select2-container--classic .select2-selection--single').addClass(
+                    'rounded-xl bg-gray-50 border-2 border-transparent text-base focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 pl-5 pr-12 py-4 cursor-pointer hover:bg-gray-100'
+                );
+                $('.select2-container--classic .select2-selection--single .select2-selection__rendered').addClass(
+                    'text-gray-900');
+                $('.select2-container--classic .select2-selection--single .select2-selection__arrow').addClass(
+                    'text-gray-500');
+            });
+
             // Hitung total harga
             function hitungTotalHarga() {
                 const selectedService = document.querySelector('input[name="service_id"]:checked');
@@ -258,8 +285,211 @@
                     updateServiceSelection(checkedRadio);
                 }
             });
+
+            // Format nomor WhatsApp
+            const noWaInput = document.getElementById('no_wa');
+            noWaInput.addEventListener('input', function(e) {
+                // Hapus semua karakter non-digit
+                let value = e.target.value.replace(/\D/g, '');
+
+                // Hapus angka 0 di depan jika ada
+                if (value.startsWith('0')) {
+                    value = value.substring(1);
+                }
+
+                // Hapus angka 62 di depan jika ada
+                if (value.startsWith('62')) {
+                    value = value.substring(2);
+                }
+
+                // Set nilai input tanpa format
+                e.target.value = value;
+            });
+
+            // Modal Tambah Pelanggan
+            const modal = document.getElementById('modalTambahPelanggan');
+            const btnTambahPelanggan = document.getElementById('btnTambahPelanggan');
+            const btnBatalTambahPelanggan = document.getElementById('btnBatalTambahPelanggan');
+            const formTambahPelanggan = document.getElementById('formTambahPelanggan');
+            const selectPelanggan = document.getElementById('customer_id');
+
+            // Buka modal
+            btnTambahPelanggan.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Tutup modal
+            function tutupModal() {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+                formTambahPelanggan.reset();
+            }
+
+            btnBatalTambahPelanggan.addEventListener('click', tutupModal);
+
+            // Tutup modal ketika klik di luar modal
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    tutupModal();
+                }
+            });
+
+            // Handle form submission
+            formTambahPelanggan.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                try {
+                    // Format nomor WhatsApp sebelum submit
+                    const noWaInput = document.getElementById('no_wa');
+                    let noWaValue = noWaInput.value.replace(/\D/g, '');
+
+                    // Hapus 0 atau 62 di depan jika ada
+                    if (noWaValue.startsWith('0')) {
+                        noWaValue = noWaValue.substring(1);
+                    }
+                    if (noWaValue.startsWith('62')) {
+                        noWaValue = noWaValue.substring(2);
+                    }
+
+                    const formData = {
+                        nama: document.getElementById('nama').value,
+                        no_wa: '62' + noWaValue,
+                        alamat: document.getElementById('alamat').value,
+                        email: document.getElementById('email').value
+                    };
+
+                    const response = await fetch('/customers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Terjadi kesalahan saat menambahkan pelanggan');
+                    }
+
+                    const data = await response.json();
+
+                    // Tambahkan opsi baru ke select
+                    const option = new Option(data.customer.nama + ' (' + data.customer.no_wa + ')', data.customer
+                        .id);
+                    selectPelanggan.add(option);
+                    selectPelanggan.value = data.customer.id;
+
+                    // Tutup modal
+                    tutupModal();
+
+                    // Tampilkan notifikasi sukses
+                    const alert = document.createElement('div');
+                    alert.className =
+                        'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded';
+                    alert.innerHTML = `
+                        <strong class="font-bold">Berhasil!</strong>
+                        <span class="block sm:inline"> ${data.message}</span>
+                    `;
+                    document.body.appendChild(alert);
+
+                    // Hapus notifikasi setelah 3 detik
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
+
+                } catch (error) {
+                    console.error('Error:', error);
+
+                    // Tampilkan notifikasi error
+                    const alert = document.createElement('div');
+                    alert.className =
+                        'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
+                    alert.innerHTML = `
+                        <strong class="font-bold">Error!</strong>
+                        <span class="block sm:inline"> ${error.message}</span>
+                    `;
+                    document.body.appendChild(alert);
+
+                    // Hapus notifikasi setelah 3 detik
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
+                }
+            });
         </script>
     @endpush
+
+    <!-- Modal Tambah Pelanggan -->
+    <div id="modalTambahPelanggan" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="formTambahPelanggan" class="p-6">
+                    @csrf
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+                            Tambah Pelanggan Baru
+                        </h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="nama" class="block text-sm font-medium text-gray-700">
+                                Nama
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="nama" id="nama" required
+                                class="mt-1 block w-full rounded-xl bg-gray-50 border-2 border-transparent focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 text-base pl-5 pr-12 py-4">
+                        </div>
+
+                        <div>
+                            <label for="no_wa" class="block text-sm font-medium text-gray-700">
+                                Nomor WhatsApp
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <span class="text-gray-500">+62</span>
+                                </div>
+                                <input type="tel" name="no_wa" id="no_wa" required
+                                    class="mt-1 block w-full rounded-xl bg-gray-50 border-2 border-transparent focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 text-base pl-14 pr-12 py-4"
+                                    placeholder="8xxxxxxxxxx">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="alamat" class="block text-sm font-medium text-gray-700">Alamat</label>
+                            <textarea name="alamat" id="alamat" rows="3"
+                                class="mt-1 block w-full rounded-xl bg-gray-50 border-2 border-transparent focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 text-base pl-5 pr-12 py-4 resize-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" name="email" id="email"
+                                class="mt-1 block w-full rounded-xl bg-gray-50 border-2 border-transparent focus:border-green-500 focus:bg-white focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 text-base pl-5 pr-12 py-4">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end space-x-3">
+                        <button type="button" id="btnBatalTambahPelanggan"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 <style>
@@ -279,5 +509,104 @@
 
     .service-option.selected .check-icon {
         opacity: 1;
+    }
+
+    /* Select2 Minimalis Super Clean - Arrow Fix Only One */
+    .select2-container--classic .select2-selection--single .select2-selection__arrow {
+        height: 100% !important;
+        width: 2rem !important;
+        right: 0.5rem !important;
+        top: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: absolute !important;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .select2-container--classic .select2-selection--single .select2-selection__arrow * {
+        display: none !important;
+        background: none !important;
+        content: none !important;
+    }
+
+    .select2-container--classic .select2-selection--single .select2-selection__arrow::before {
+        display: none !important;
+        content: none !important;
+        background: none !important;
+    }
+
+    /* Select2 Minimalis Super Clean */
+    .select2-container--classic .select2-selection--single {
+        min-height: 2.5rem !important;
+        background: #fff !important;
+        background-image: none !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.75rem !important;
+        padding: 0.5rem 2rem 0.5rem 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        box-shadow: none !important;
+        transition: border 0.2s !important;
+        position: relative !important;
+        font-size: 1rem !important;
+    }
+
+    .select2-container--classic .select2-selection--single:hover,
+    .select2-container--classic .select2-selection--single:focus,
+    .select2-container--classic.select2-container--open .select2-selection--single {
+        border-color: #22c55e !important;
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.10) !important;
+        background: #fff !important;
+    }
+
+    .select2-container--classic .select2-selection--single .select2-selection__rendered {
+        color: #222 !important;
+        padding: 0 !important;
+        line-height: 1.5 !important;
+        background: none !important;
+        font-size: 1rem !important;
+    }
+
+    .select2-container--classic .select2-selection--single .select2-selection__placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1 !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Tombol X (clear) custom */
+    .select2-container--classic .select2-selection__clear {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        margin-left: 0.5rem !important;
+        margin-right: 0.25rem !important;
+        cursor: pointer !important;
+        border-radius: 9999px !important;
+        background: none !important;
+        font-size: 0 !important;
+        transition: background 0.2s;
+        position: relative;
+    }
+
+    .select2-container--classic .select2-selection__clear::before {
+        content: '';
+        display: block;
+        width: 1.1rem;
+        height: 1.1rem;
+        background: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%239ca3af" stroke-width="2.2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="7" x2="17" y2="17" stroke-linecap="round"/><line x1="17" y1="7" x2="7" y2="17" stroke-linecap="round"/></svg>') center/1.1rem no-repeat;
+        transition: background 0.2s;
+    }
+
+    .select2-container--classic .select2-selection__clear:hover::before {
+        background: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%2322c55e" stroke-width="2.2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="7" y1="7" x2="17" y2="17" stroke-linecap="round"/><line x1="17" y1="7" x2="7" y2="17" stroke-linecap="round"/></svg>') center/1.1rem no-repeat;
+    }
+
+    .select2-container--classic .select2-selection__clear * {
+        display: none !important;
     }
 </style>

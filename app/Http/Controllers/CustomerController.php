@@ -10,9 +10,22 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::latest()->paginate(10);
+        $query = Customer::query();
+
+        // Filter berdasarkan pencarian
+        if ($request->has('q') && $request->q !== '') {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('no_wa', 'like', "%{$search}%")
+                    ->orWhere('alamat', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('nama')->paginate(10)->withQueryString();
         return view('customers.index', compact('customers'));
     }
 
@@ -29,23 +42,50 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:100',
-            'no_wa' => 'required|string|max:20',
-            'alamat' => 'nullable|string',
-            'email' => 'nullable|email|max:100',
-        ]);
+        try {
+            $validated = $request->validate([
+                'nama' => 'required|string|max:255',
+                'no_wa' => 'required|string|max:20',
+                'alamat' => 'nullable|string|max:500',
+                'email' => 'nullable|email|max:255',
+            ]);
 
-        // Tambahkan 62 di depan nomor WA jika belum ada
-        if (!str_starts_with($validated['no_wa'], '62')) {
-            $validated['no_wa'] = '62' . ltrim($validated['no_wa'], '0');
+            // Tambahkan 62 di depan nomor WA jika belum ada
+            if (!str_starts_with($validated['no_wa'], '62')) {
+                $validated['no_wa'] = '62' . ltrim($validated['no_wa'], '0');
+            }
+
+            $customer = Customer::create($validated);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pelanggan berhasil ditambahkan',
+                    'customer' => $customer
+                ]);
+            }
+
+            return redirect()
+                ->route('customers.index')
+                ->with('success', 'Pelanggan berhasil ditambahkan');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menambahkan pelanggan'
+                ], 500);
+            }
+            throw $e;
         }
-
-        Customer::create($validated);
-
-        return redirect()
-            ->route('customers.index')
-            ->with('success', 'Data pelanggan berhasil ditambahkan!');
     }
 
     /**
@@ -70,10 +110,10 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:100',
+            'nama' => 'required|string|max:255',
             'no_wa' => 'required|string|max:20',
-            'alamat' => 'nullable|string',
-            'email' => 'nullable|email|max:100',
+            'alamat' => 'nullable|string|max:500',
+            'email' => 'nullable|email|max:255',
         ]);
 
         // Tambahkan 62 di depan nomor WA jika belum ada
@@ -102,7 +142,7 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus data pelanggan.'
+                'message' => 'Gagal menghapus data pelanggan. Silakan coba lagi.'
             ], 500);
         }
     }

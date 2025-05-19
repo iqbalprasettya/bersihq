@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
@@ -36,8 +37,8 @@ class ServiceController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Pastikan is_active memiliki nilai default true jika tidak diset
-        $validated['is_active'] = $request->has('is_active');
+        // Pastikan is_active memiliki nilai yang sesuai dengan input
+        $validated['is_active'] = $request->boolean('is_active');
 
         Service::create($validated);
 
@@ -66,8 +67,8 @@ class ServiceController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Pastikan is_active memiliki nilai default false jika tidak diset
-        $validated['is_active'] = $request->has('is_active');
+        // Pastikan is_active memiliki nilai yang sesuai dengan input
+        $validated['is_active'] = $request->boolean('is_active');
 
         $service->update($validated);
 
@@ -82,15 +83,26 @@ class ServiceController extends Controller
     public function destroy(Service $service)
     {
         try {
+            // Mulai transaksi database
+            DB::beginTransaction();
+
+            // Hapus layanan (ini akan memicu cascade delete ke orders)
             $service->delete();
+
+            // Commit transaksi
+            DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Layanan berhasil dihapus!'
+                'message' => 'Layanan dan semua pesanan terkait berhasil dihapus!'
             ]);
         } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi error
+            DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus layanan.'
+                'message' => 'Gagal menghapus layanan. Silakan coba lagi.'
             ], 500);
         }
     }

@@ -10,8 +10,16 @@
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Additional Plugins -->
+    @stack('plugins')
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -68,10 +76,27 @@
         input[type="number"] {
             -moz-appearance: textfield;
         }
+
+        /* Animasi untuk dropdown */
+        .dropdown-menu {
+            transition-property: opacity, transform;
+            transition-duration: 200ms;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dropdown-menu.hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .dropdown-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
-<body class="bg-gradient-custom-light min-h-screen">
+<body class="bg-gradient-custom-light min-h-screen" x-data>
     <!-- Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-gray-900/50 z-10 lg:hidden hidden"></div>
 
@@ -116,9 +141,9 @@
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 px-2 py-3 space-y-1 overflow-y-auto custom-scrollbar">
+            <nav class="flex-1 px-3 py-4 space-y-3 overflow-y-auto custom-scrollbar">
                 <a href="{{ route('dashboard') }}"
-                    class="flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,7 +155,7 @@
                 </a>
 
                 <a href="{{ route('orders.index') }}"
-                    class="flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('orders.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('orders.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -142,7 +167,7 @@
                 </a>
 
                 <a href="{{ route('customers.index') }}"
-                    class="flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('customers.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('customers.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,7 +179,7 @@
                 </a>
 
                 <a href="{{ route('services.index') }}"
-                    class="flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('services.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('services.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,27 +192,73 @@
                     <span class="ml-3 whitespace-nowrap">Layanan</span>
                 </a>
 
-                @if (auth()->user()->role === 'admin')
-                    <a href="#"
-                        class="flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10">
-                        <div class="flex items-center justify-center w-8 h-8">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
+                <!-- Divider -->
+                <div class="border-t border-white/20 my-4"></div>
+
+                <!-- Laporan -->
+                <div x-data="{ open: false }" class="space-y-3">
+                    <p class="px-3 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Laporan</p>
+                    <button @click="open = !open" type="button"
+                        class="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10 {{ request()->routeIs('reports.*') ? 'bg-white/10' : '' }}">
+                        <div class="flex items-center">
+                            <div class="flex items-center justify-center w-8 h-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <span class="ml-3 whitespace-nowrap">Laporan</span>
                         </div>
-                        <span class="ml-3 whitespace-nowrap">Pengguna</span>
-                    </a>
-                @endif
+                        <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 px-3">
+                        <a href="{{ route('reports.transactions') }}"
+                            class="flex items-center pl-11 pr-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('reports.transactions') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
+                            <span>Transaksi</span>
+                        </a>
+                    </div>
+                </div>
 
                 <!-- Divider -->
-                <div class="border-t border-white/20 my-2"></div>
+                <div class="border-t border-white/20 my-4"></div>
+
+                <!-- Pengaturan -->
+                <div class="space-y-3">
+                    <p class="px-3 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Pengaturan</p>
+                    @if (auth()->user()->role === 'admin')
+                        <a href="{{ route('users.index') }}"
+                            class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('users.*') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                            <div class="flex items-center justify-center w-8 h-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <span class="ml-3 whitespace-nowrap">Pengguna</span>
+                        </a>
+                    @endif
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-white/20 my-4"></div>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                        class="w-full flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10">
+                        class="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10">
                         <div class="flex items-center justify-center w-8 h-8">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">

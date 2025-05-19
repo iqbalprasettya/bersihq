@@ -9,9 +9,24 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['customer', 'service'])->latest()->paginate(10);
+        $query = Order::with(['customer', 'service']);
+
+        // Filter berdasarkan status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan pencarian
+        if ($request->has('q') && $request->q !== '') {
+            $search = $request->q;
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $query->latest()->paginate(10)->withQueryString();
         return view('orders.index', compact('orders'));
     }
 
@@ -68,15 +83,15 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:diterima,diproses,selesai,diambil'
+            'status' => 'required|in:diterima,diproses,siap_diambil,selesai'
         ]);
 
         // Validasi urutan status
         $statusOrder = [
             'diterima' => 1,
             'diproses' => 2,
-            'selesai' => 3,
-            'diambil' => 4
+            'siap_diambil' => 3,
+            'selesai' => 4
         ];
 
         $currentStatusOrder = $statusOrder[$order->status];
@@ -98,13 +113,7 @@ class OrderController extends Controller
                     'tanggal_selesai' => now()
                 ]);
             }
-            // Jika status baru adalah 'diambil', pertahankan tanggal_selesai
-            else if ($request->status === 'diambil') {
-                $order->update([
-                    'status' => $request->status
-                ]);
-            }
-            // Jika status kembali ke 'diterima' atau 'diproses', hapus tanggal_selesai
+            // Jika status kembali ke status sebelumnya, hapus tanggal_selesai
             else {
                 $order->update([
                     'status' => $request->status,

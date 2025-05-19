@@ -18,18 +18,23 @@
         <!-- Filter dan Pencarian -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
             <div class="p-4">
-                <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                <form id="filter-form" class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
                     <div class="w-full sm:w-64">
                         <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status
                             Pesanan</label>
                         <div class="relative">
-                            <select id="status-filter"
+                            <select id="status-filter" name="status"
                                 class="w-full rounded-lg bg-gray-50 border border-gray-200 text-gray-900 py-2.5 pl-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none">
                                 <option value="">Semua Status</option>
-                                <option value="diterima">Diterima</option>
-                                <option value="diproses">Diproses</option>
-                                <option value="selesai">Selesai</option>
-                                <option value="diambil">Diambil</option>
+                                <option value="diterima" {{ request('status') == 'diterima' ? 'selected' : '' }}>Diterima
+                                </option>
+                                <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses
+                                </option>
+                                <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>
+                                    Siap Diambil
+                                </option>
+                                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai
+                                </option>
                             </select>
                             <div
                                 class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -49,11 +54,12 @@
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <input type="text" id="search" placeholder="Cari nama pelanggan..."
+                            <input type="text" id="search" name="q" value="{{ request('q') }}"
+                                placeholder="Cari nama pelanggan..."
                                 class="w-full py-2.5 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900">
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -69,9 +75,9 @@
                                     class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap
                                     @if ($order->status === 'diterima') bg-green-100 text-green-700 
                                     @elseif($order->status === 'diproses') bg-orange-100 text-orange-700 
-                                    @elseif($order->status === 'selesai') bg-teal-100 text-teal-700 
-                                    @elseif($order->status === 'diambil') bg-purple-100 text-purple-700 @endif">
-                                    {{ ucfirst($order->status) }}
+                                    @elseif($order->status === 'siap_diambil') bg-teal-100 text-teal-700 
+                                    @elseif($order->status === 'selesai') bg-purple-100 text-purple-700 @endif">
+                                    {{ str_replace('_', ' ', ucfirst($order->status)) }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-600">{{ $order->service->nama_layanan }}</p>
@@ -87,16 +93,28 @@
                             <p class="text-gray-600">Berat: <span class="font-medium">{{ $order->berat }} kg</span></p>
                             <p class="text-gray-600 text-xs">No: #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</p>
                         </div>
-                        <button type="button" data-order-id="{{ $order->id }}"
-                            class="detail-btn inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-green-600 hover:bg-green-700 transition-all">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            Detail
-                        </button>
+                        <div class="flex flex-col sm:flex-row gap-1.5">
+                            <button type="button" data-order-id="{{ $order->id }}"
+                                class="detail-btn inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium text-white bg-green-600 hover:bg-green-700 transition-all">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span class="hidden sm:inline">Quick</span> View
+                            </button>
+                            <a href="{{ route('orders.show', $order->id) }}"
+                                class="inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Detail
+                            </a>
+                        </div>
                     </div>
                 </div>
             @empty
@@ -109,16 +127,84 @@
         <!-- Pagination -->
         @if ($orders->hasPages())
             <div class="mt-6">
-                <div class="bg-white rounded-xl shadow-md">
-                    {{ $orders->links() }}
+                <div class="bg-white rounded-xl shadow-sm p-4">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="text-sm text-gray-600 text-center sm:text-left">
+                            Menampilkan {{ $orders->firstItem() ?? 0 }} - {{ $orders->lastItem() ?? 0 }} dari
+                            {{ $orders->total() }} pesanan
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {{-- Previous Page Link --}}
+                            @if ($orders->onFirstPage())
+                                <span
+                                    class="inline-flex items-center px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span class="hidden sm:inline">Sebelumnya</span>
+                                </span>
+                            @else
+                                <a href="{{ $orders->previousPageUrl() }}"
+                                    class="inline-flex items-center px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span class="hidden sm:inline">Sebelumnya</span>
+                                </a>
+                            @endif
+
+                            {{-- Pagination Elements --}}
+                            <div class="hidden sm:flex items-center space-x-2">
+                                @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                                    @if ($page == $orders->currentPage())
+                                        <span
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium text-white bg-green-600">{{ $page }}</span>
+                                    @else
+                                        <a href="{{ $url }}"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors">{{ $page }}</a>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            {{-- Mobile Pagination Info --}}
+                            <div class="sm:hidden text-sm font-medium text-gray-600">
+                                Halaman {{ $orders->currentPage() }} dari {{ $orders->lastPage() }}
+                            </div>
+
+                            {{-- Next Page Link --}}
+                            @if ($orders->hasMorePages())
+                                <a href="{{ $orders->nextPageUrl() }}"
+                                    class="inline-flex items-center px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                                    <span class="hidden sm:inline">Selanjutnya</span>
+                                    <svg class="w-4 h-4 sm:ml-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </a>
+                            @else
+                                <span
+                                    class="inline-flex items-center px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                                    <span class="hidden sm:inline">Selanjutnya</span>
+                                    <svg class="w-4 h-4 sm:ml-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         @endif
     </div>
 
     <!-- Modal Detail -->
-    <div id="detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay dengan animasi -->
             <div id="modal-backdrop"
@@ -207,15 +293,15 @@
                                 <span class="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>
                                 Diproses
                             </button>
-                            <button type="button" data-status="selesai"
+                            <button type="button" data-status="siap_diambil"
                                 class="status-button inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded bg-teal-100 text-teal-800 hover:bg-teal-200 focus:outline-none">
                                 <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5"></span>
-                                Selesai
+                                Siap Diambil
                             </button>
-                            <button type="button" data-status="diambil"
+                            <button type="button" data-status="selesai"
                                 class="status-button inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded bg-purple-100 text-purple-800 hover:bg-purple-200 focus:outline-none">
                                 <span class="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
-                                Diambil
+                                Selesai
                             </button>
                         </div>
                     </div>
@@ -264,36 +350,18 @@
                 }
             });
 
-            // Filter berdasarkan status
-            $('#status-filter').on('change', function() {
-                const status = $(this).val().toLowerCase();
-                filterOrders();
-            });
-
-            // Pencarian berdasarkan nama pelanggan
+            // Filter dan pencarian dengan debounce
+            let searchTimeout;
             $('#search').on('keyup', function() {
-                filterOrders();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    $('#filter-form').submit();
+                }, 500);
             });
 
-            function filterOrders() {
-                const status = $('#status-filter').val().toLowerCase();
-                const search = $('#search').val().toLowerCase();
-
-                $('#order-list > div').each(function() {
-                    const orderCard = $(this);
-                    const orderStatus = orderCard.find('.rounded-full').text().trim().toLowerCase();
-                    const customerName = orderCard.find('h3').text().trim().toLowerCase();
-
-                    const statusMatch = status === '' || orderStatus === status;
-                    const searchMatch = search === '' || customerName.includes(search);
-
-                    if (statusMatch && searchMatch) {
-                        orderCard.show();
-                    } else {
-                        orderCard.hide();
-                    }
-                });
-            }
+            $('#status-filter').on('change', function() {
+                $('#filter-form').submit();
+            });
 
             // Modal Detail
             $('.detail-btn').on('click', function() {
@@ -365,9 +433,9 @@
                                 } else if (order.status === 'diproses') {
                                     statusElement.addClass(
                                         'bg-orange-100 text-orange-700');
-                                } else if (order.status === 'selesai') {
+                                } else if (order.status === 'siap_diambil') {
                                     statusElement.addClass('bg-teal-100 text-teal-700');
-                                } else if (order.status === 'diambil') {
+                                } else if (order.status === 'selesai') {
                                     statusElement.addClass(
                                         'bg-purple-100 text-purple-700');
                                 }
@@ -478,9 +546,9 @@
                                 statusClass = 'bg-green-100 text-green-700';
                             } else if (newStatus === 'diproses') {
                                 statusClass = 'bg-orange-100 text-orange-700';
-                            } else if (newStatus === 'selesai') {
+                            } else if (newStatus === 'siap_diambil') {
                                 statusClass = 'bg-teal-100 text-teal-700';
-                            } else if (newStatus === 'diambil') {
+                            } else if (newStatus === 'selesai') {
                                 statusClass = 'bg-purple-100 text-purple-700';
                             }
 

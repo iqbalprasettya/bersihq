@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Customer;
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
 class CustomerSeeder extends Seeder
 {
@@ -12,29 +13,16 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        $customers = [
-            [
-                'nama' => 'Budi Santoso',
-                'no_wa' => '081234567890',
-                'alamat' => 'Jl. Merdeka No. 123, Jakarta',
-                'email' => 'budi@example.com',
-            ],
-            [
-                'nama' => 'Siti Rahayu',
-                'no_wa' => '082345678901',
-                'alamat' => 'Jl. Pahlawan No. 45, Jakarta',
-                'email' => 'siti@example.com',
-            ],
-            [
-                'nama' => 'Ahmad Hidayat',
-                'no_wa' => '083456789012',
-                'alamat' => 'Jl. Sudirman No. 67, Jakarta',
-                'email' => null,
-            ],
-        ];
+        $faker = Faker::create('id_ID');
 
-        foreach ($customers as $customer) {
-            Customer::create($customer);
+        // Buat 50 pelanggan dummy
+        for ($i = 0; $i < 50; $i++) {
+            Customer::create([
+                'nama' => $faker->name,
+                'no_wa' => $faker->phoneNumber,
+                'alamat' => $faker->address,
+                'email' => $faker->optional(0.7)->email,
+            ]);
         }
     }
 }

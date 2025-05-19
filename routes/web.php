@@ -5,6 +5,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 // Route untuk guest/belum login
@@ -33,13 +35,17 @@ Route::middleware('auth')->group(function () {
     // Services
     Route::resource('services', ServiceController::class);
 
-    // Route khusus admin
-    Route::middleware('role:admin')->group(function () {
-        // Route admin akan ditambahkan nanti
-    });
+    // Reports
+    Route::get('/reports/transactions', [ReportController::class, 'transactions'])->name('reports.transactions');
+    Route::post('/reports/transactions/export', [ReportController::class, 'exportTransactions'])->name('reports.transactions.export');
 
-    // Route khusus kasir
-    Route::middleware('role:kasir')->group(function () {
-        // Route kasir akan ditambahkan nanti
+    // User Management Routes (Hanya untuk admin)
+    Route::prefix('users')->name('users.')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 });

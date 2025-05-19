@@ -85,8 +85,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Selesai</p>
-                        <p class="mt-1 text-2xl font-semibold text-teal-600">{{ $countSelesai }}</p>
+                        <p class="text-sm font-medium text-gray-600">Total Siap Diambil</p>
+                        <p class="mt-1 text-2xl font-semibold text-teal-600">{{ $countSiapDiambil }}</p>
                     </div>
                 </div>
             </div>
@@ -102,8 +102,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Diambil</p>
-                        <p class="mt-1 text-2xl font-semibold text-purple-600">{{ $countDiambil }}</p>
+                        <p class="text-sm font-medium text-gray-600">Total Selesai</p>
+                        <p class="mt-1 text-2xl font-semibold text-purple-600">{{ $countSelesai }}</p>
                     </div>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                             @foreach ($latestOrders as $order)
                                 <div
                                     class="relative bg-white rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center border-l-4 gap-3 sm:gap-0
-                                    @if ($order->status === 'diterima') border-green-500 @elseif($order->status === 'diproses') border-orange-500 @elseif($order->status === 'selesai') border-teal-500 @elseif($order->status === 'diambil') border-purple-500 @endif
+                                    @if ($order->status === 'diterima') border-green-500 @elseif($order->status === 'diproses') border-orange-500 @elseif($order->status === 'siap_diambil') border-teal-500 @elseif($order->status === 'selesai') border-purple-500 @endif
                                     hover:shadow-md transition-all duration-150 min-h-[56px] px-4 py-3">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
@@ -133,8 +133,8 @@
                                                 class="font-medium text-gray-900 truncate text-sm">{{ $order->customer->nama }}</span>
                                             <span
                                                 class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap
-                                                @if ($order->status === 'diterima') bg-green-50 text-green-700 @elseif($order->status === 'diproses') bg-orange-50 text-orange-700 @elseif($order->status === 'selesai') bg-teal-50 text-teal-700 @elseif($order->status === 'diambil') bg-purple-50 text-purple-700 @endif">
-                                                {{ ucfirst($order->status) }}
+                                                @if ($order->status === 'diterima') bg-green-50 text-green-700 @elseif($order->status === 'diproses') bg-orange-50 text-orange-700 @elseif($order->status === 'siap_diambil') bg-teal-50 text-teal-700 @elseif($order->status === 'selesai') bg-purple-50 text-purple-700 @endif">
+                                                {{ str_replace('_', ' ', ucfirst($order->status)) }}
                                             </span>
                                         </div>
                                         <div class="text-xs text-gray-500 truncate mt-0.5">

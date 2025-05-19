@@ -35,7 +35,7 @@
         <!-- Service Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="service-list">
             @forelse ($services as $service)
-                <div
+                <div data-service-id="{{ $service->id }}"
                     class="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-200 border border-gray-100">
                     <div class="flex items-start justify-between">
                         <div class="min-w-0">
@@ -44,11 +44,19 @@
                                 @if ($service->is_active)
                                     <span
                                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"></path>
+                                        </svg>
                                         Aktif
                                     </span>
                                 @else
                                     <span
                                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
                                         Nonaktif
                                     </span>
                                 @endif
@@ -159,6 +167,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="fixed bottom-4 right-4 z-50 hidden"></div>
 @endsection
 
 @push('scripts')
@@ -189,6 +200,37 @@
             });
         });
 
+        // Fungsi untuk menampilkan toast notification
+        function showToast(message, type = 'success') {
+            const toast = $('#toast-notification');
+            const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700' :
+                'bg-red-100 border-red-500 text-red-700';
+            const icon = type === 'success' ?
+                `<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>` :
+                `<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>`;
+
+            toast.html(`
+                <div class="rounded-xl border ${bgColor} p-4 shadow-lg">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            ${icon}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `).removeClass('hidden');
+
+            setTimeout(() => {
+                toast.addClass('hidden');
+            }, 3000);
+        }
+
         // Fungsi untuk menampilkan modal konfirmasi hapus
         function confirmDelete(serviceId) {
             const modal = document.getElementById('deleteModal');
@@ -207,6 +249,7 @@
         document.getElementById('deleteForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const form = this;
+            const serviceId = form.action.split('/').pop();
 
             $.ajax({
                 url: form.action,
@@ -216,13 +259,26 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        // Tampilkan notifikasi sukses
+                        showToast('Layanan berhasil dihapus!');
                         closeDeleteModal();
-                        location.reload();
+
+                        // Hapus card layanan dari DOM
+                        const serviceCard = $(`[data-service-id="${serviceId}"]`);
+                        serviceCard.fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Jika tidak ada card lagi, reload halaman
+                            if ($('#service-list > div').length === 0) {
+                                location.reload();
+                            }
+                        });
                     }
                 },
-                error: function() {
-                    alert('Terjadi kesalahan saat menghapus layanan.');
+                error: function(xhr) {
+                    const message = xhr.responseJSON?.message ||
+                        'Terjadi kesalahan saat menghapus layanan.';
+                    showToast(message, 'error');
+                    closeDeleteModal();
                 }
             });
         });

@@ -5,55 +5,49 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        if (auth()->user()->role === 'kasir') {
-            return $this->kasirDashboard();
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        if (Auth::user()->role === 'kasir') {
+            // Hitung jumlah pesanan berdasarkan status untuk hari ini
+            $today = now()->startOfDay();
+            $countDiterima = Order::whereDate('created_at', $today)->where('status', 'diterima')->count();
+            $countDiproses = Order::whereDate('created_at', $today)->where('status', 'diproses')->count();
+            $countSiapDiambil = Order::whereDate('created_at', $today)->where('status', 'siap_diambil')->count();
+            $countSelesai = Order::whereDate('created_at', $today)->where('status', 'selesai')->count();
+
+            // Ambil pesanan yang perlu diperhatikan (status diterima)
+            $needsAttention = Order::with(['customer', 'service'])
+                ->whereIn('status', ['diterima', 'diproses', 'siap_diambil'])
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
+
+            // Ambil pesanan hari ini dengan pagination
+            $todayOrders = Order::with(['customer', 'service'])
+                ->whereDate('created_at', $today)
+                // ->whereIn('status', ['selesai', 'siap_diambil'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(5);
+
+            return view('dashboard.kasir', compact(
+                'countDiterima',
+                'countDiproses',
+                'countSiapDiambil',
+                'countSelesai',
+                'needsAttention',
+                'todayOrders'
+            ));
         }
 
         return $this->adminDashboard();
-    }
-
-    private function kasirDashboard()
-    {
-        // Pesanan hari ini
-        $today = now()->startOfDay();
-        $endToday = now()->endOfDay();
-
-        $todayOrders = Order::with(['customer', 'service'])
-            ->whereBetween('created_at', [$today, $endToday])
-            ->whereIn('status', ['diterima', 'diproses'])
-            ->latest()
-            ->get();
-
-        // Pesanan yang perlu diproses
-        $needsAttention = Order::with(['customer', 'service'])
-            ->where('status', 'diterima')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        // Status pesanan hari ini
-        $countDiterima = Order::whereBetween('created_at', [$today, $endToday])
-            ->where('status', 'diterima')->count();
-        $countDiproses = Order::whereBetween('created_at', [$today, $endToday])
-            ->where('status', 'diproses')->count();
-        $countSelesai = Order::whereBetween('created_at', [$today, $endToday])
-            ->where('status', 'selesai')->count();
-        $countDiambil = Order::whereBetween('created_at', [$today, $endToday])
-            ->where('status', 'diambil')->count();
-
-        return view('dashboard.kasir', compact(
-            'todayOrders',
-            'needsAttention',
-            'countDiterima',
-            'countDiproses',
-            'countSelesai',
-            'countDiambil'
-        ));
     }
 
     private function adminDashboard()
@@ -66,8 +60,8 @@ class DashboardController extends Controller
         // Hitung jumlah pesanan per status
         $countDiterima = Order::where('status', 'diterima')->count();
         $countDiproses = Order::where('status', 'diproses')->count();
+        $countSiapDiambil = Order::where('status', 'siap_diambil')->count();
         $countSelesai = Order::where('status', 'selesai')->count();
-        $countDiambil = Order::where('status', 'diambil')->count();
 
         // Ringkasan pendapatan
         $today = now()->startOfDay();
@@ -75,10 +69,10 @@ class DashboardController extends Controller
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
 
-        $pendapatanHariIni = Order::whereBetween('created_at', [$today, $endToday])->sum('total_harga');
-        $jumlahPesananHariIni = Order::whereBetween('created_at', [$today, $endToday])->count();
-        $pendapatanBulanIni = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('total_harga');
-        $jumlahPesananBulanIni = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+        $pendapatanHariIni = Order::whereBetween('created_at', [$today, $endToday])->whereIn('status', ['selesai'])->sum('total_harga');
+        $jumlahPesananHariIni = Order::whereBetween('created_at', [$today, $endToday])->whereIn('status', ['selesai'])->count();
+        $pendapatanBulanIni = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->whereIn('status', ['selesai'])->sum('total_harga');
+        $jumlahPesananBulanIni = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])->whereIn('status', ['selesai'])->count();
 
         // Data chart pendapatan 7 hari terakhir
         $labelsPendapatan = [];
@@ -94,8 +88,8 @@ class DashboardController extends Controller
             'latestOrders',
             'countDiterima',
             'countDiproses',
+            'countSiapDiambil',
             'countSelesai',
-            'countDiambil',
             'pendapatanHariIni',
             'jumlahPesananHariIni',
             'pendapatanBulanIni',

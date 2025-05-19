@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Kasir - BersihQ Laundry')
+@section('title', 'Dashboard - BersihQ Laundry')
 
 @section('content')
     <div class="space-y-6">
@@ -85,8 +85,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Selesai Hari Ini</p>
-                        <p class="mt-1 text-2xl font-semibold text-teal-600">{{ $countSelesai }}</p>
+                        <p class="text-sm font-medium text-gray-600">Siap Diambil</p>
+                        <p class="mt-1 text-2xl font-semibold text-teal-600">{{ $countSiapDiambil }}</p>
                     </div>
                 </div>
             </div>
@@ -102,8 +102,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Diambil Hari Ini</p>
-                        <p class="mt-1 text-2xl font-semibold text-purple-600">{{ $countDiambil }}</p>
+                        <p class="text-sm font-medium text-gray-600">Selesai Hari Ini</p>
+                        <p class="mt-1 text-2xl font-semibold text-purple-600">{{ $countSelesai }}</p>
                     </div>
                 </div>
             </div>
@@ -167,8 +167,12 @@
 
             <!-- Pesanan Hari Ini -->
             <div class="bg-white rounded-2xl shadow-sm">
-                <div class="px-6 py-4 border-b border-gray-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                     <h2 class="text-lg font-semibold text-gray-900">Pesanan Hari Ini</h2>
+                    <a href="{{ route('orders.index') }}"
+                        class="text-sm text-green-600 hover:text-green-800 font-medium transition-colors duration-150 ease-in-out">
+                        Lihat Semua
+                    </a>
                 </div>
                 <div class="p-6">
                     @if ($todayOrders->count() > 0)
@@ -176,7 +180,7 @@
                             @foreach ($todayOrders as $order)
                                 <div
                                     class="relative bg-white rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center border-l-4 gap-3 sm:gap-0
-                                    @if ($order->status === 'diterima') border-green-500 @elseif($order->status === 'diproses') border-orange-500 @endif
+                                    @if ($order->status === 'diterima') border-green-500 @elseif($order->status === 'diproses') border-orange-500 @elseif($order->status === 'siap_diambil') border-teal-500 @elseif($order->status === 'selesai') border-purple-500 @endif
                                     hover:shadow-md transition-all duration-150 min-h-[56px] px-4 py-3">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
@@ -184,8 +188,8 @@
                                                 class="font-medium text-gray-900 truncate text-sm">{{ $order->customer->nama }}</span>
                                             <span
                                                 class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap
-                                                @if ($order->status === 'diterima') bg-green-50 text-green-700 @elseif($order->status === 'diproses') bg-orange-50 text-orange-700 @endif">
-                                                {{ ucfirst($order->status) }}
+                                                @if ($order->status === 'diterima') bg-green-50 text-green-700 @elseif($order->status === 'diproses') bg-orange-50 text-orange-700 @elseif($order->status === 'siap_diambil') bg-teal-50 text-teal-700 @elseif($order->status === 'selesai') bg-purple-50 text-purple-700 @endif">
+                                                {{ str_replace('_', ' ', ucfirst($order->status)) }}
                                             </span>
                                         </div>
                                         <div class="text-xs text-gray-500 truncate mt-0.5">
@@ -204,6 +208,60 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        <!-- Pagination -->
+                        @if ($todayOrders->hasPages())
+                            <div class="mt-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs text-gray-600">
+                                        Halaman {{ $todayOrders->currentPage() }} dari {{ $todayOrders->lastPage() }}
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        {{-- Previous Page Link --}}
+                                        @if ($todayOrders->onFirstPage())
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </span>
+                                        @else
+                                            <a href="{{ $todayOrders->previousPageUrl() }}"
+                                                class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </a>
+                                        @endif
+
+                                        {{-- Next Page Link --}}
+                                        @if ($todayOrders->hasMorePages())
+                                            <a href="{{ $todayOrders->nextPageUrl() }}"
+                                                class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </a>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium text-gray-400 bg-gray-50 cursor-not-allowed">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @else
                         <div class="text-center py-8">
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-4">
