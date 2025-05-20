@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
 
     // Reports
     Route::get('/reports/transactions', [ReportController::class, 'transactions'])->name('reports.transactions');
-    Route::post('/reports/transactions/export', [ReportController::class, 'exportTransactions'])->name('reports.transactions.export');
+    Route::get('/reports/transactions/export', [ReportController::class, 'exportTransactions'])->name('reports.transactions.export');
 
     // User Management Routes (Hanya untuk admin)
     Route::prefix('users')->name('users.')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])->group(function () {

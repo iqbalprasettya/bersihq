@@ -8,8 +8,8 @@
         const picker = new Litepicker({
             element: document.getElementById('daterange'),
             singleMode: false,
-            numberOfMonths: 2,
-            numberOfColumns: 2,
+            numberOfMonths: window.innerWidth < 768 ? 1 : 2,
+            numberOfColumns: window.innerWidth < 768 ? 1 : 2,
             showTooltip: true,
             lang: 'id-ID',
             format: 'DD/MM/YYYY',
@@ -41,6 +41,13 @@
                 });
             }
         });
+
+        // Update number of months when window is resized
+        window.addEventListener('resize', () => {
+            picker.options.numberOfMonths = window.innerWidth < 768 ? 1 : 2;
+            picker.options.numberOfColumns = window.innerWidth < 768 ? 1 : 2;
+            picker.render();
+        });
     });
 </script>
 
@@ -59,6 +66,24 @@
     .litepicker .container__months {
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
         border-radius: 0.5rem !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    @media (max-width: 768px) {
+        .litepicker .container__months {
+            width: 100% !important;
+            min-width: 280px !important;
+        }
+
+        .litepicker .container__months .month-item {
+            width: 100% !important;
+        }
+
+        .litepicker .container__days .day-item {
+            width: calc(100% / 7) !important;
+            height: 2.5rem !important;
+        }
     }
 
     .litepicker .container__months .month-item-header {
@@ -138,13 +163,16 @@
 
     /* Reset button style */
     .litepicker .container__tooltip {
-        background-color: #1f2937;
+        background-color: #ffffff;
         border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        border: 1px solid #e5e7eb;
     }
 
     .litepicker .container__tooltip .tooltip-text {
-        color: #ffffff;
+        color: #374151;
         font-size: 0.75rem;
+        font-weight: 500;
     }
 
     /* Footer style */
@@ -158,6 +186,7 @@
 
     .litepicker-custom-ranges {
         display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
         border-top: 1px solid #e5e7eb;
