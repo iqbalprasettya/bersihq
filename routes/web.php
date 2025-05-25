@@ -7,6 +7,9 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\WhatsAppConfigController;
+use App\Http\Controllers\WhatsAppConnectionController;
+use App\Http\Controllers\WhatsAppTemplateController;
 use Illuminate\Support\Facades\Route;
 
 // Route untuk guest/belum login
@@ -47,5 +50,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // WhatsApp Bot Routes (Hanya untuk admin)
+    Route::prefix('whatsapp')->name('whatsapp.')->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':admin'])->group(function () {
+        Route::get('/config', [WhatsAppConfigController::class, 'index'])->name('config');
+        Route::post('/config', [WhatsAppConfigController::class, 'update'])->name('config.update');
+        Route::get('/connect', [WhatsAppConnectionController::class, 'index'])->name('connect');
+        Route::post('/connect/qr', [WhatsAppConnectionController::class, 'getQR'])->name('connect.qr');
+        Route::post('/connect/disconnect', [WhatsAppConnectionController::class, 'disconnect'])->name('connect.disconnect');
+
+        // Template Routes
+        Route::get('/template', [WhatsAppTemplateController::class, 'index'])->name('template');
+        Route::get('/template/{id}/edit', [WhatsAppTemplateController::class, 'edit'])->name('template.edit');
+        Route::put('/template/{id}', [WhatsAppTemplateController::class, 'update'])->name('template.update');
+        Route::get('/template/{id}/preview', [WhatsAppTemplateController::class, 'preview'])->name('template.preview');
     });
 });

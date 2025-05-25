@@ -20,21 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Additional Plugins -->
     @stack('plugins')
-
-    <!-- Initial sidebar state -->
-    <script>
-        // Cek state collapse sebelum render
-        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '4rem' : '18rem');
-        document.documentElement.style.setProperty('--content-margin', isCollapsed ? '4rem' : '18rem');
-    </script>
-
     <style>
-        :root {
-            --sidebar-width: 18rem;
-            --content-margin: 18rem;
-        }
-
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
@@ -64,22 +50,6 @@
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
-        }
-
-        /* Sidebar styles */
-        #sidebar {
-            width: var(--sidebar-width);
-            transition: width 0.3s ease-in-out;
-        }
-
-        #main-content {
-            margin-left: var(--content-margin);
-            transition: margin-left 0.3s ease-in-out;
-        }
-
-        /* Hide text elements if sidebar is collapsed */
-        #sidebar[data-collapsed="true"] .sidebar-text {
-            display: none;
         }
 
         /* Memperbaiki tampilan input */
@@ -134,25 +104,12 @@
         <!-- Sidebar -->
         <aside id="sidebar"
             class="fixed h-full bg-gradient-custom shadow-xl z-20 transition-all duration-300 ease-in-out flex flex-col -translate-x-full lg:translate-x-0"
-            data-collapsed="{{ json_encode(request()->cookie('sidebarCollapsed') === 'true') }}">
-            <!-- Toggle Button -->
-            <button id="sidebar-toggle"
-                class="absolute -right-3 top-6 p-1.5 rounded-full bg-white shadow-md border border-gray-100 text-gray-500 hover:text-emerald-600 focus:outline-none group transition-all duration-200 hidden lg:block">
-                <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24" id="toggle-icon">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-            </button>
-
+            style="width: 18rem;">
             <!-- Logo -->
             <div class="flex items-center h-16 px-4 border-b border-white/20">
                 <div class="flex items-center justify-center min-w-[2rem]">
-                    <span id="full-logo" class="text-xl font-bold text-white">
+                    <span class="text-xl font-bold text-white">
                         BersihQ
-                    </span>
-                    <span id="mini-logo" class="hidden text-xl font-bold text-white">
-                        B
                     </span>
                 </div>
             </div>
@@ -173,7 +130,7 @@
             <!-- Navigation -->
             <nav class="flex-1 px-3 py-4 space-y-3 overflow-y-auto custom-scrollbar">
                 <a href="{{ route('dashboard') }}"
-                    class="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,7 +142,7 @@
                 </a>
 
                 <a href="{{ route('orders.index') }}"
-                    class="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('orders.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('orders.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -197,19 +154,19 @@
                 </a>
 
                 <a href="{{ route('customers.index') }}"
-                    class="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('customers.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('customers.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </div>
                     <span class="ml-3 whitespace-nowrap">Pelanggan</span>
                 </a>
 
                 <a href="{{ route('services.index') }}"
-                    class="flex items-center px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('services.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                    class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('services.index') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
                     <div class="flex items-center justify-center w-8 h-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,104 +179,150 @@
                     <span class="ml-3 whitespace-nowrap">Layanan</span>
                 </a>
 
-                <!-- Divider -->
-                <div class="border-t border-white/20 my-4"></div>
-
                 @if (auth()->user()->role === 'admin')
+                    <!-- Divider -->
+                    <div class="border-t border-white/20 my-4"></div>
+
                     <!-- Laporan -->
-                    <div x-data="{
-                        open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }},
-                        init() {
-                            this.$watch('$store.sidebar.collapsed', (value) => {
-                                if (value) this.open = false;
-                            })
-                        }
-                    }" class="space-y-1">
-                        <p class="px-3 text-xs font-semibold text-white/60 uppercase sidebar-text">Laporan</p>
-                        <button @click="!$store.sidebar.collapsed && (open = !open)" type="button"
-                            :class="{
-                                'justify-center': $store.sidebar.collapsed,
-                                'justify-between': !$store.sidebar.collapsed,
-                                'px-2': !$store.sidebar.collapsed,
-                                'px-0': $store.sidebar.collapsed
-                            }"
-                            class="flex items-center w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10 {{ request()->routeIs('reports.*') ? 'bg-white/10' : '' }}">
-                            <div class="flex items-center"
-                                :class="{ 'justify-center w-full': $store.sidebar.collapsed }">
+                    <div x-data="{ open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-3">
+                        <p class="px-3 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Laporan</p>
+                        <button @click="open = !open" type="button"
+                            class="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10 {{ request()->routeIs('reports.*') ? 'bg-white/10' : '' }}">
+                            <div class="flex items-center">
                                 <div class="flex items-center justify-center w-8 h-8">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="w-5 h-5 transition-all duration-200" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
-                                <span class="ml-3 whitespace-nowrap sidebar-text">Laporan</span>
+                                <span class="ml-3 whitespace-nowrap">Laporan</span>
                             </div>
-                            <svg class="w-4 h-4 ml-2 transition-transform duration-300 sidebar-text"
-                                :class="{ 'rotate-180': open }" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
 
                         <!-- Dropdown Menu -->
-                        <div x-show="open && !$store.sidebar.collapsed"
-                            x-transition:enter="transition ease-out duration-200"
+                        <div x-show="open" x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 -translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-150"
                             x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 -translate-y-2" class="relative pl-3">
-                            <div
-                                class="relative pl-8 before:content-[''] before:absolute before:left-3 before:top-0 before:h-full before:w-px before:bg-white/20">
+                            x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 px-3">
+                            <div class="relative pl-3">
+                                <!-- Garis vertikal -->
+                                <div class="absolute left-0 top-0 h-full w-px bg-white/20"></div>
                                 <a href="{{ route('reports.transactions') }}"
-                                    class="flex items-center py-2 pl-4 pr-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('reports.transactions') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
-                                    <span>Transaksi</span>
+                                    class="block relative py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('reports.transactions') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
+                                    <div class="relative flex items-center">
+                                        <!-- Garis horizontal -->
+                                        <div class="absolute -left-3 top-1/2 w-2 h-px bg-white/20"></div>
+                                        <span class="pl-4">Transaksi</span>
+                                    </div>
                                 </a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Divider -->
-                    <div class="border-t border-white/20 my-4"></div>
                 @endif
 
-                <!-- Pengaturan -->
                 @if (auth()->user()->role === 'admin')
-                    <div class="space-y-1">
-                        <p class="px-3 text-xs font-semibold text-white/60 uppercase sidebar-text">Pengaturan</p>
-                        <a href="{{ route('users.index') }}"
-                            :class="{
-                                'justify-center': $store.sidebar.collapsed,
-                                'px-2': !$store.sidebar.collapsed,
-                                'px-0': $store.sidebar.collapsed
-                            }"
-                            class="flex items-center w-full py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('users.*') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
-                            <div class="flex items-center"
-                                :class="{ 'justify-center w-full': $store.sidebar.collapsed }">
-                                <div class="flex items-center justify-center w-8 h-8">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="w-5 h-5 transition-all duration-200" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                </div>
-                                <span class="ml-3 whitespace-nowrap sidebar-text">Pengguna</span>
-                            </div>
-                        </a>
-                    </div>
-
                     <!-- Divider -->
                     <div class="border-t border-white/20 my-4"></div>
+
+                    <!-- Pengaturan -->
+                    <div class="space-y-3">
+                        <p class="px-3 text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Pengaturan
+                        </p>
+                        <a href="{{ route('users.index') }}"
+                            class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('users.*') ? 'text-emerald-800 bg-white' : 'text-white hover:bg-white/10' }}">
+                            <div class="flex items-center justify-center w-8 h-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <span class="ml-3 whitespace-nowrap">Pengguna</span>
+                        </a>
+                        {{-- whatsapp bot --}}
+                        <div x-data="{ open: {{ request()->routeIs('whatsapp.*') ? 'true' : 'false' }} }" class="space-y-3">
+                            <button @click="open = !open" type="button"
+                                class="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10 {{ request()->routeIs('whatsapp.*') ? 'bg-white/10' : '' }}">
+                                <div class="flex items-center">
+                                    <div class="flex items-center justify-center w-8 h-8">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            class="w-5 h-5 transition-all duration-200" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                        </svg>
+                                    </div>
+                                    <span class="ml-3 whitespace-nowrap">WhatsApp Bot</span>
+                                </div>
+                                <svg class="w-4 h-4 ml-2 transition-transform duration-200"
+                                    :class="{ 'rotate-180': open }" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2" class="space-y-1 px-3">
+                                <div class="relative pl-3">
+                                    <!-- Garis vertikal -->
+                                    <div class="absolute left-0 top-0 h-full w-px bg-white/20"></div>
+
+                                    <!-- Connect -->
+                                    <a href="{{ route('whatsapp.connect') }}"
+                                        class="block relative py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('whatsapp.connect') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
+                                        <div class="relative flex items-center">
+                                            <!-- Garis horizontal -->
+                                            <div class="absolute -left-3 top-1/2 w-2 h-px bg-white/20"></div>
+                                            <span class="pl-4">Connect</span>
+                                        </div>
+                                    </a>
+
+                                    <!-- Config -->
+                                    <a href="{{ route('whatsapp.config') }}"
+                                        class="block relative py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('whatsapp.config') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
+                                        <div class="relative flex items-center">
+                                            <!-- Garis horizontal -->
+                                            <div class="absolute -left-3 top-1/2 w-2 h-px bg-white/20"></div>
+                                            <span class="pl-4">Config</span>
+                                        </div>
+                                    </a>
+
+                                    <!-- Template Text -->
+                                    <a href="{{ route('whatsapp.template') }}"
+                                        class="block relative py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out {{ request()->routeIs('whatsapp.template') ? 'text-emerald-800 bg-white' : 'text-white/80 hover:bg-white/10 hover:text-white' }}">
+                                        <div class="relative flex items-center">
+                                            <!-- Garis horizontal -->
+                                            <div class="absolute -left-3 top-1/2 w-2 h-px bg-white/20"></div>
+                                            <span class="pl-4">Template Text</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 @endif
+
+                <!-- Divider -->
+                <div class="border-t border-white/20 my-4"></div>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                        class="w-full flex items-center px-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10">
+                        class="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out text-white hover:bg-white/10">
                         <div class="flex items-center justify-center w-8 h-8">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-all duration-200"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -406,55 +409,8 @@
     <script>
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('main-content');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-        const fullLogo = document.getElementById('full-logo');
-        const miniLogo = document.getElementById('mini-logo');
-        const profileInfo = document.querySelectorAll('.profile-info');
-        const menuTexts = document.querySelectorAll('.whitespace-nowrap');
-        const toggleIcon = document.getElementById('toggle-icon');
-
-        // Set initial state based on localStorage
-        if (localStorage.getItem('sidebarCollapsed') === 'true') {
-            sidebar.dataset.collapsed = 'true';
-            toggleIcon.style.transform = 'rotate(180deg)';
-            fullLogo.classList.add('hidden');
-            miniLogo.classList.remove('hidden');
-            profileInfo.forEach(el => el.classList.add('hidden'));
-            menuTexts.forEach(el => el.classList.add('hidden'));
-        }
-
-        // Toggle untuk desktop
-        function toggleSidebar() {
-            const isCollapsed = sidebar.dataset.collapsed === 'true';
-
-            // Update dataset
-            sidebar.dataset.collapsed = (!isCollapsed).toString();
-
-            // Update CSS variables
-            document.documentElement.style.setProperty('--sidebar-width', !isCollapsed ? '4rem' : '18rem');
-            document.documentElement.style.setProperty('--content-margin', !isCollapsed ? '4rem' : '18rem');
-
-            // Save state and update Alpine store
-            localStorage.setItem('sidebarCollapsed', !isCollapsed);
-            Alpine.store('sidebar').collapsed = !isCollapsed;
-
-            // Update UI elements
-            toggleIcon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
-
-            if (isCollapsed) {
-                fullLogo.classList.remove('hidden');
-                miniLogo.classList.add('hidden');
-                profileInfo.forEach(el => el.classList.remove('hidden'));
-                menuTexts.forEach(el => el.classList.remove('hidden'));
-            } else {
-                fullLogo.classList.add('hidden');
-                miniLogo.classList.remove('hidden');
-                profileInfo.forEach(el => el.classList.add('hidden'));
-                menuTexts.forEach(el => el.classList.add('hidden'));
-            }
-        }
 
         // Toggle untuk mobile
         function toggleMobileSidebar() {
@@ -472,7 +428,6 @@
         }
 
         // Event listeners
-        sidebarToggle.addEventListener('click', toggleSidebar);
         mobileMenuButton.addEventListener('click', toggleMobileSidebar);
         sidebarBackdrop.addEventListener('click', toggleMobileSidebar);
 
@@ -484,19 +439,8 @@
                 document.body.style.overflow = '';
             } else {
                 sidebar.classList.add('-translate-x-full');
-                mainContent.style.marginLeft = '0';
             }
         });
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('sidebar', {
-                collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
-                toggle() {
-                    this.collapsed = !this.collapsed;
-                    localStorage.setItem('sidebarCollapsed', this.collapsed);
-                }
-            })
-        })
     </script>
     @stack('scripts')
 </body>

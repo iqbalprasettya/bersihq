@@ -41,69 +41,69 @@
         <!-- Status Pesanan Hari Ini -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div
-                class="bg-white rounded-2xl shadow-sm p-6 transform transition-all duration-150 ease-in-out hover:scale-105">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 p-3 rounded-xl bg-green-50">
-                        <svg class="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                class="bg-white rounded-2xl p-6 transform transition-all duration-150 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex-shrink-0">
+                        <p class="text-sm font-medium text-gray-600">Diterima Hari Ini</p>
+                        <p class="mt-2 text-3xl font-bold text-green-600">{{ $countDiterima }}</p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-xl">
+                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Diterima Hari Ini</p>
-                        <p class="mt-1 text-2xl font-semibold text-green-600">{{ $countDiterima }}</p>
-                    </div>
                 </div>
             </div>
 
             <div
-                class="bg-white rounded-2xl shadow-sm p-6 transform transition-all duration-150 ease-in-out hover:scale-105">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 p-3 rounded-xl bg-orange-50">
-                        <svg class="h-8 w-8 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                class="bg-white rounded-2xl p-6 transform transition-all duration-150 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex-shrink-0">
+                        <p class="text-sm font-medium text-gray-600">Diproses Hari Ini</p>
+                        <p class="mt-2 text-3xl font-bold text-orange-600">{{ $countDiproses }}</p>
+                    </div>
+                    <div class="p-3 bg-orange-50 rounded-xl">
+                        <svg class="h-6 w-6 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Diproses Hari Ini</p>
-                        <p class="mt-1 text-2xl font-semibold text-orange-600">{{ $countDiproses }}</p>
-                    </div>
                 </div>
             </div>
 
             <div
-                class="bg-white rounded-2xl shadow-sm p-6 transform transition-all duration-150 ease-in-out hover:scale-105">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 p-3 rounded-xl bg-teal-50">
-                        <svg class="h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                class="bg-white rounded-2xl p-6 transform transition-all duration-150 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex-shrink-0">
+                        <p class="text-sm font-medium text-gray-600">Siap Diambil</p>
+                        <p class="mt-2 text-3xl font-bold text-teal-600">{{ $countSiapDiambil }}</p>
+                    </div>
+                    <div class="p-3 bg-teal-50 rounded-xl">
+                        <svg class="h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Siap Diambil</p>
-                        <p class="mt-1 text-2xl font-semibold text-teal-600">{{ $countSiapDiambil }}</p>
-                    </div>
                 </div>
             </div>
 
             <div
-                class="bg-white rounded-2xl shadow-sm p-6 transform transition-all duration-150 ease-in-out hover:scale-105">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 p-3 rounded-xl bg-purple-50">
-                        <svg class="h-8 w-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                class="bg-white rounded-2xl p-6 transform transition-all duration-150 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex-shrink-0">
+                        <p class="text-sm font-medium text-gray-600">Selesai Hari Ini</p>
+                        <p class="mt-2 text-3xl font-bold text-purple-600">{{ $countSelesai }}</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-xl">
+                        <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Selesai Hari Ini</p>
-                        <p class="mt-1 text-2xl font-semibold text-purple-600">{{ $countSelesai }}</p>
                     </div>
                 </div>
             </div>
@@ -124,14 +124,19 @@
                         <div class="flex flex-col gap-4">
                             @foreach ($needsAttention as $order)
                                 <div
-                                    class="relative bg-white rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center border-l-4 border-green-500 gap-3 sm:gap-0 hover:shadow-md transition-all duration-150 min-h-[56px] px-4 py-3">
+                                    class="relative bg-white rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center border-l-4 gap-3 sm:gap-0
+                                    @if ($order->status === 'diterima') border-green-500 
+                                    @elseif($order->status === 'diproses') border-orange-500 @endif
+                                    hover:shadow-md transition-all duration-150 min-h-[56px] px-4 py-3">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span
                                                 class="font-medium text-gray-900 truncate text-sm">{{ $order->customer->nama }}</span>
                                             <span
-                                                class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap bg-green-50 text-green-700">
-                                                Diterima
+                                                class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap 
+                                                @if ($order->status === 'diterima') bg-green-50 text-green-700 
+                                                @elseif($order->status === 'diproses') bg-orange-50 text-orange-700 @endif">
+                                                {{ str_replace('_', ' ', ucfirst($order->status)) }}
                                             </span>
                                         </div>
                                         <div class="text-xs text-gray-500 truncate mt-0.5">
@@ -142,8 +147,12 @@
                                     <div
                                         class="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0 w-full sm:w-auto">
                                         <span class="text-xs text-gray-700">{{ $order->berat }} kg</span>
-                                        <span class="text-sm font-bold text-green-700">Rp
-                                            {{ number_format($order->total_harga, 0, ',', '.') }}</span>
+                                        <span
+                                            class="text-sm font-bold 
+                                            @if ($order->status === 'diterima') text-green-700 
+                                            @elseif($order->status === 'diproses') text-orange-700 @endif">
+                                            Rp {{ number_format($order->total_harga, 0, ',', '.') }}
+                                        </span>
                                     </div>
                                     <a href="{{ route('orders.show', $order) }}" class="absolute inset-0 z-10"
                                         aria-label="Lihat detail pesanan"></a>

@@ -23,7 +23,8 @@ class OrderSeeder extends Seeder
         // Buat 100 pesanan dummy
         for ($i = 0; $i < 100; $i++) {
             $tanggalPesan = $faker->dateTimeBetween('-3 months', 'now');
-            $status = $faker->randomElement(['diterima', 'diproses', 'siap_diambil', 'selesai']);
+            // $status = $faker->randomElement(['diterima', 'diproses', 'siap_diambil', 'selesai']);
+            $status = 'selesai';
 
             // Jika status selesai, tambahkan tanggal selesai
             $tanggalSelesai = null;

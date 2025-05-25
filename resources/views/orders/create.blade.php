@@ -371,7 +371,11 @@
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.message || 'Terjadi kesalahan saat menambahkan pelanggan');
+                        if (errorData.errors && errorData.errors.no_wa) {
+                            throw new Error(errorData.errors.no_wa[0]);
+                        } else {
+                            throw new Error(errorData.message || 'Terjadi kesalahan saat menambahkan pelanggan');
+                        }
                     }
 
                     const data = await response.json();
