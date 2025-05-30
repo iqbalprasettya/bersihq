@@ -212,3 +212,53 @@ echo $response;
 }
 ```
 
+## Get device
+
+```php
+<?php
+
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://api.fonnte.com/device',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_HTTPHEADER => array(
+    'Authorization: TOKEN'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+echo $response;
+```
+
+# contoh response
+
+```json
+{
+    "device": "6282227097005",
+    "device_status": "connect",
+    "expired": "18 November 2029",
+    "messages": 16785,
+    "name": "Fonnte admin",
+    "package": "Reguler",
+    "quota": "78",
+    "status": true
+}
+```
+
+# contoh response
+
+```json
+{
+    "reason": "token invalid",
+    "status": false
+}
+```

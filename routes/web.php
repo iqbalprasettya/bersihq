@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/config', [WhatsAppConfigController::class, 'update'])->name('config.update');
         Route::get('/connect', [WhatsAppConnectionController::class, 'index'])->name('connect');
         Route::post('/connect/qr', [WhatsAppConnectionController::class, 'getQR'])->name('connect.qr');
+        Route::post('/connect/device', [WhatsAppConnectionController::class, 'getDevice'])->name('connect.device');
         Route::post('/connect/disconnect', [WhatsAppConnectionController::class, 'disconnect'])->name('connect.disconnect');
 
         // Template Routes

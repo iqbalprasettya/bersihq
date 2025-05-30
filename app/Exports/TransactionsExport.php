@@ -55,7 +55,7 @@ class TransactionsExport implements FromCollection, WithMapping, WithColumnWidth
 
             $formattedSummary = [
                 'Total Keseluruhan Transaksi' => $totalAll,
-                'Total Pendapatan' => $totalRevenueSummary, // Menggunakan total pendapatan untuk summary atas
+                // 'Total Pendapatan' => $totalRevenueSummary, // Menggunakan total pendapatan untuk summary atas
                 'Transaksi Diterima' => $summary['diterima'] ?? 0,
                 'Transaksi Diproses' => $summary['diproses'] ?? 0,
                 'Transaksi Siap Diambil' => $summary['siap_diambil'] ?? 0,
@@ -74,7 +74,7 @@ class TransactionsExport implements FromCollection, WithMapping, WithColumnWidth
             $formattedSummary = [
                 'Status yang dipilih' => ucfirst(str_replace('_', ' ', $this->status)),
                 'Total Transaksi' => $total,
-                'Total Pendapatan' => $totalRevenueSummary // Menggunakan total pendapatan untuk summary atas
+                // 'Total Pendapatan' => $totalRevenueSummary // Menggunakan total pendapatan untuk summary atas
             ];
 
             if ($this->startDate && $this->endDate) {
@@ -289,27 +289,23 @@ class TransactionsExport implements FromCollection, WithMapping, WithColumnWidth
 
                 // --- Add Total Row at the bottom of the data table ---
                 $totalRow = $lastRow + 1; // Row after the last data row
-                $sheet->setCellValue('C' . $totalRow, 'Total Pendapatan Seluruh Transaksi:'); // Label in column C
-                $sheet->mergeCells('C' . $totalRow . ':D' . $totalRow); // Merge label cells (C to D)
+                $sheet->setCellValue('D' . $totalRow, 'Total Pendapatan Seluruh Transaksi:'); // Label in column D
 
                 // Calculate total sum from the collection data
                 $totalSum = $this->collection()->sum('total_harga');
                 $sheet->setCellValue('E' . $totalRow, (float) $totalSum); // Total value in column E
 
-                // Apply styling to the merged label cells (C to D)
-                $sheet->getStyle('C' . $totalRow . ':D' . $totalRow)->applyFromArray([
+                // Apply styling to the label cell (D)
+                $sheet->getStyle('D' . $totalRow)->applyFromArray([
                     'font' => [
                         'bold' => true,
                     ],
                     'alignment' => [
-                        'horizontal' => Alignment::HORIZONTAL_RIGHT, // Align label to the right within merged cells
+                        'horizontal' => Alignment::HORIZONTAL_RIGHT, // Align label to the right
                         'vertical' => Alignment::VERTICAL_CENTER,
                     ],
                     'borders' => [
-                        'top' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                        ],
-                        'bottom' => [
+                        'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
                         ],
                     ],
@@ -318,20 +314,15 @@ class TransactionsExport implements FromCollection, WithMapping, WithColumnWidth
                         'startColor' => ['rgb' => 'E5E7EB'], // Light gray background
                     ],
                 ]);
-                // Apply styling to the total value cell (Column E)
+
+                // Apply styling to the total value cell (E)
                 $sheet->getStyle('E' . $totalRow)->applyFromArray([
                     'font' => [
                         'bold' => true,
                     ],
                     'borders' => [
-                        'top' => [
+                        'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
-                        ],
-                        'bottom' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                        ],
-                        'right' => [
-                            'borderStyle' => Border::BORDER_THIN, // Add right border to total value cell
                         ],
                     ],
                     'fill' => [

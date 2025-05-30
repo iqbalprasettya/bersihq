@@ -229,6 +229,32 @@
                                     </tr>
                                 @endforelse
                             </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-50">
+                                    <td colspan="4" class="px-4 sm:px-6 py-3 text-sm font-medium text-gray-900 text-right">
+                                        Total Pendapatan Seluruh Transaksi:
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-3 text-sm font-medium text-gray-900 text-right">
+                                        Rp
+                                        {{ number_format(
+                                            \App\Models\Order::query()->when(request('daterange'), function ($query) {
+                                                    $dates = explode(' - ', request('daterange'));
+                                                    if (count($dates) == 2) {
+                                                        $startDate = \Carbon\Carbon::createFromFormat('d/m/Y', trim($dates[0]))->startOfDay();
+                                                        $endDate = \Carbon\Carbon::createFromFormat('d/m/Y', trim($dates[1]))->endOfDay();
+                                                        $query->whereBetween('created_at', [$startDate, $endDate]);
+                                                    }
+                                                })->when(request('status'), function ($query) {
+                                                    $query->where('status', request('status'));
+                                                })->sum('total_harga'),
+                                            0,
+                                            ',',
+                                            '.',
+                                        ) }}
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
