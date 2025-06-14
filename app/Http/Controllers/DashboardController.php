@@ -23,9 +23,9 @@ class DashboardController extends Controller
             $countSiapDiambil = Order::whereDate('created_at', $today)->where('status', 'siap_diambil')->count();
             $countSelesai = Order::whereDate('created_at', $today)->where('status', 'selesai')->count();
 
-            // Ambil pesanan yang perlu diperhatikan (status diterima)
+            // Ambil pesanan yang perlu diperhatikan (status diterima dan diproses)
             $needsAttention = Order::with(['customer', 'service'])
-                ->whereIn('status', ['diterima', 'diproses', 'siap_diambil'])
+                ->whereIn('status', ['diterima', 'diproses'])
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get();

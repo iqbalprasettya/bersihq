@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
@@ -25,7 +26,7 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->orderBy('nama')->paginate(10)->withQueryString();
+        $customers = $query->latest()->paginate(10)->withQueryString();
         return view('customers.index', compact('customers'));
     }
 
@@ -55,6 +56,14 @@ class CustomerController extends Controller
                 $validated['no_wa'] = '62' . ltrim($validated['no_wa'], '0');
             }
 
+            // Cek apakah nomor WA sudah ada
+            $existingCustomer = Customer::where('no_wa', $validated['no_wa'])->first();
+            if ($existingCustomer) {
+                throw ValidationException::withMessages([
+                    'no_wa' => ['Nomor WhatsApp ini sudah terdaftar.']
+                ]);
+            }
+
             $customer = Customer::create($validated);
 
             if ($request->wantsJson()) {
@@ -68,7 +77,7 @@ class CustomerController extends Controller
             return redirect()
                 ->route('customers.index')
                 ->with('success', 'Pelanggan berhasil ditambahkan');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -119,6 +128,16 @@ class CustomerController extends Controller
         // Tambahkan 62 di depan nomor WA jika belum ada
         if (!str_starts_with($validated['no_wa'], '62')) {
             $validated['no_wa'] = '62' . ltrim($validated['no_wa'], '0');
+        }
+
+        // Cek apakah nomor WA sudah ada (kecuali untuk pelanggan yang sedang diedit)
+        $existingCustomer = Customer::where('no_wa', $validated['no_wa'])
+            ->where('id', '!=', $customer->id)
+            ->first();
+        if ($existingCustomer) {
+            throw ValidationException::withMessages([
+                'no_wa' => ['Nomor WhatsApp ini sudah terdaftar.']
+            ]);
         }
 
         $customer->update($validated);

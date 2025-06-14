@@ -6,9 +6,18 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use App\Services\WhatsAppService;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
+    protected $whatsapp;
+
+    public function __construct(WhatsAppService $whatsapp)
+    {
+        $this->whatsapp = $whatsapp;
+    }
+
     public function index(Request $request)
     {
         $query = Order::with(['customer', 'service']);
@@ -39,28 +48,51 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'service_id' => 'required|exists:services,id',
-            'berat' => 'required|numeric|min:0.1',
-            'catatan' => 'nullable|string|max:500',
-        ]);
+        try {
+            $validated = $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'service_id' => 'required|exists:services,id',
+                'berat' => 'required|numeric|min:0.1',
+                'catatan' => 'nullable|string|max:500',
+            ]);
 
-        $service = Service::findOrFail($request->service_id);
-        $total_harga = $service->harga * $request->berat;
+            $service = Service::findOrFail($request->service_id);
+            $total_harga = $service->harga * $request->berat;
 
-        $order = Order::create([
-            'customer_id' => $request->customer_id,
-            'service_id' => $request->service_id,
-            'berat' => $request->berat,
-            'total_harga' => $total_harga,
-            'catatan' => $request->catatan,
-            'status' => 'diterima',
-        ]);
+            $order = Order::create([
+                'customer_id' => $request->customer_id,
+                'service_id' => $request->service_id,
+                'berat' => $request->berat,
+                'total_harga' => $total_harga,
+                'catatan' => $request->catatan,
+                'status' => 'diterima',
+            ]);
 
-        return redirect()
-            ->route('orders.index')
-            ->with('success', 'Pesanan berhasil dibuat!');
+            // Kirim notifikasi WhatsApp pesanan diterima
+            $variables = [
+                'nama' => $order->customer->nama,
+                'nomor_order' => str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                'layanan' => $order->service->nama_layanan,
+                'berat' => $order->berat,
+                'total' => number_format($order->total_harga, 0, ',', '.')
+            ];
+
+            $result = $this->whatsapp->sendMessageWithTemplate($order->customer->no_wa, 'diterima', $variables);
+
+            if (!$result['success'] && str_contains($result['message'], 'tidak aktif')) {
+                Log::info('Template WhatsApp tidak aktif, pesan tidak dikirim', ['order_id' => $order->id]);
+            }
+
+            return redirect()
+                ->route('orders.index')
+                ->with('success', 'Pesanan berhasil dibuat!');
+        } catch (\Exception $e) {
+            Log::error('Error creating order: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal membuat pesanan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function show(Order $order)
@@ -82,54 +114,53 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|in:diterima,diproses,siap_diambil,selesai'
-        ]);
-
-        // Validasi urutan status
-        $statusOrder = [
-            'diterima' => 1,
-            'diproses' => 2,
-            'siap_diambil' => 3,
-            'selesai' => 4
-        ];
-
-        $currentStatusOrder = $statusOrder[$order->status];
-        $newStatusOrder = $statusOrder[$request->status];
-
-        // Hanya boleh maju satu langkah atau kembali ke status sebelumnya
-        if ($newStatusOrder > $currentStatusOrder + 1) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Status harus diubah secara berurutan'
-            ], 422);
-        }
-
         try {
-            // Jika status baru adalah 'selesai', set tanggal_selesai
-            if ($request->status === 'selesai') {
-                $order->update([
-                    'status' => $request->status,
-                    'tanggal_selesai' => now()
-                ]);
+            $request->validate([
+                'status' => 'required|in:diterima,diproses,siap_diambil,selesai'
+            ]);
+
+            $oldStatus = $order->status;
+            $newStatus = $request->status;
+
+            // Update status
+            $order->status = $newStatus;
+
+            // Jika status berubah menjadi selesai, set tanggal selesai
+            if ($newStatus === 'selesai' && $oldStatus !== 'selesai') {
+                $order->tanggal_selesai = now();
             }
-            // Jika status kembali ke status sebelumnya, hapus tanggal_selesai
-            else {
-                $order->update([
-                    'status' => $request->status,
-                    'tanggal_selesai' => null
-                ]);
+
+            $order->save();
+
+            // Variabel dasar untuk notifikasi
+            $variables = [
+                'nama' => $order->customer->nama,
+                'nomor_order' => str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                'layanan' => $order->service->nama_layanan,
+                'berat' => $order->berat,
+                'total' => number_format($order->total_harga, 0, ',', '.')
+            ];
+
+            // Kirim notifikasi berdasarkan status
+            $templateSent = false;
+            if ($newStatus === 'diproses' && $oldStatus !== 'diproses') {
+                $result = $this->whatsapp->sendMessageWithTemplate($order->customer->no_wa, 'diproses', $variables);
+                $templateSent = $result['success'];
+            } elseif ($newStatus === 'siap_diambil' && $oldStatus !== 'siap_diambil') {
+                $result = $this->whatsapp->sendMessageWithTemplate($order->customer->no_wa, 'siap_diambil', $variables);
+                $templateSent = $result['success'];
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status pesanan berhasil diperbarui',
-                'order' => $order->fresh()
+                'message' => 'Status pesanan berhasil diperbarui' . (!$templateSent ? ' (notifikasi WhatsApp tidak dikirim karena template tidak aktif)' : '')
             ]);
         } catch (\Exception $e) {
+            Log::error('Error updating order status: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui status pesanan'
+                'message' => 'Gagal mengubah status pesanan: ' . $e->getMessage()
             ], 500);
         }
     }
