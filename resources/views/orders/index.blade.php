@@ -3,16 +3,31 @@
 @section('title', 'Daftar Pesanan - BersihQ Laundry')
 
 @section('content')
+    <!-- Include printer settings component -->
+    @include('components.printer-settings')
+
     <div class="max-w-7xl mx-auto space-y-6 pb-20">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             <h1 class="text-2xl font-bold text-white">Daftar Pesanan</h1>
-            <a href="{{ route('orders.create') }}"
-                class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 shadow-sm transition-all">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Pesanan Baru
-            </a>
+            <div class="flex items-center gap-2">
+                <button onclick="showPrinterSettings()" type="button"
+                    class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 shadow-sm transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
+                        </path>
+                    </svg>
+                    Printer Settings
+                </button>
+                <a href="{{ route('orders.create') }}"
+                    class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 shadow-sm transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Pesanan Baru
+                </a>
+            </div>
         </div>
 
         <!-- Filter dan Pencarian -->
@@ -105,10 +120,19 @@
                                 </svg>
                                 <span class="hidden sm:inline">Quick</span> View
                             </button>
-                            <a href="{{ route('orders.show', $order->id) }}"
-                                class="inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                            <button type="button" data-order-id="{{ $order->id }}"
+                                class="print-btn inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium text-white bg-green-600 hover:bg-green-700 transition-all">
                                 <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Print
+                            </button>
+                            <a href="{{ route('orders.show', $order->id) }}"
+                                class="inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] sm:text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-0.5 sm:mr-1" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
@@ -350,6 +374,53 @@
                 }
             });
 
+            // Global variable to store order data
+            window.orderData = {};
+
+            // Function to get order data
+            window.getOrderData = function(orderId) {
+                return new Promise((resolve, reject) => {
+                    if (window.orderData[orderId]) {
+                        resolve(window.orderData[orderId]);
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '/orders/' + orderId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success && response.order) {
+                                window.orderData[orderId] = response.order;
+                                resolve(response.order);
+                            } else {
+                                reject(new Error('Invalid response format'));
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            reject(new Error(error));
+                        }
+                    });
+                });
+            };
+
+            // Override printToThermal to use order data
+            window.printToThermalWithData = async function(orderId) {
+                try {
+                    const order = await window.getOrderData(orderId);
+
+                    // Now call the original printToThermal with order data
+                    if (typeof printToThermal === 'function') {
+                        printToThermal(orderId, order);
+                    } else {
+                        console.error('printToThermal function not found');
+                    }
+                } catch (err) {
+                    console.error('Error getting order data:', err);
+                    alert('Gagal mendapatkan data pesanan: ' + err.message);
+                }
+            };
+
             // Filter dan pencarian dengan debounce
             let searchTimeout;
             $('#search').on('keyup', function() {
@@ -393,6 +464,9 @@
                         setTimeout(() => {
                             if (response.success && response.order) {
                                 const order = response.order;
+
+                                // Store order data for printing
+                                window.orderData[orderId] = order;
 
                                 // Format tanggal
                                 const orderDate = new Date(order.created_at);
@@ -609,6 +683,29 @@
                     }
                 });
             });
+
+            // Replace print button click handlers
+            $('.print-btn').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const orderId = $(this).data('order-id');
+                if (orderId) {
+                    if (typeof printToThermal === 'function') {
+                        printToThermal(orderId);
+                    } else {
+                        console.error('printToThermal function not found');
+                        alert('Fungsi cetak tidak tersedia. Silakan refresh halaman.');
+                    }
+                } else {
+                    console.error('Order ID not found');
+                    alert('ID pesanan tidak ditemukan.');
+                }
+            });
+
+            // Check QZ Tray connection on page load
+            if (typeof checkQZConnection === 'function') {
+                setTimeout(checkQZConnection, 1000);
+            }
         });
     </script>
 @endpush

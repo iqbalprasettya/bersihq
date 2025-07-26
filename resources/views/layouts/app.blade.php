@@ -25,6 +25,11 @@
     <!-- Select2 -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- QZ Tray Dependencies -->
+    <script src="https://cdn.jsdelivr.net/gh/qzind/tray@2.2.2/js/qz-tray.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kjur/jsrsasign@8.0.20/jsrsasign-all-min.js"></script>
+
     <!-- Additional Plugins -->
     @stack('plugins')
     <style>
@@ -101,6 +106,228 @@
             transform: translateY(0);
         }
     </style>
+
+    <!-- QZ Tray Configuration -->
+    <script>
+        var qzReady = false;
+        var printer = null;
+
+        function findDefaultPrinter() {
+            if (!qz || !qz.printers) {
+                console.error("QZ Tray API not available");
+                return;
+            }
+
+            qz.printers.find().then(function(printers) {
+                console.log("Available printers:", printers);
+
+                // Populate printer select
+                const printerSelect = document.getElementById('printer-select');
+                if (printerSelect) {
+                    printerSelect.innerHTML = printers.map(printer =>
+                        `<option value="${printer}">${printer}</option>`
+                    ).join('');
+                }
+
+                // Set default printer if available
+                const defaultPrinter = printers.find(p => p.toLowerCase().includes('58mm') || p.toLowerCase()
+                    .includes('thermal'));
+                if (defaultPrinter) {
+                    printer = defaultPrinter;
+                    if (printerSelect) {
+                        printerSelect.value = defaultPrinter;
+                    }
+                }
+
+                // Trigger event that printers are loaded
+                document.dispatchEvent(new Event('printersLoaded'));
+            }).catch(function(err) {
+                console.error("Failed to get printers:", err);
+            });
+        }
+
+        async function initQZTray() {
+            if (typeof qz === 'undefined') {
+                console.error("QZ Tray library not loaded");
+                return false;
+            }
+
+            try {
+                // Basic QZ Tray configuration
+                qz.api.setSha256Type(function(data) {
+                    return sha256(data);
+                });
+                qz.api.setPromiseType(function(resolver) {
+                    return new Promise(resolver);
+                });
+
+                // Set up certificate
+                const certificate = "-----BEGIN CERTIFICATE-----\n" +
+                    "MIID0TCCArmgAwIBAgIUNHvDVsxTCYmNn+YaO+BPYDNAZPwwDQYJKoZIhvcNAQEL\n" +
+                    "BQAweDELMAkGA1UEBhMCSUQxEzARBgNVBAgMCldlc3QgSmF2YWExEDAOBgNVBAcM\n" +
+                    "B0NpYW5qdXIxETAPBgNVBAoMCEJlcnNpaFFRMREwDwYDVQQLDAhCZXJzaWhRUTEc\n" +
+                    "MBoGA1UEAwwTQmVyc2loUVEgTGF1bmRyeSBBcHAwHhcNMjQwMzE5MDMzMjQ5WhcN\n" +
+                    "MjUwMzE5MDMzMjQ5WjB4MQswCQYDVQQGEwJJRDETMBEGA1UECAwKV2VzdCBKYXZh\n" +
+                    "YTEQMA4GA1UEBwwHQ2lhbmp1cjERMA8GA1UECgwIQmVyc2loUVExETAPBgNVBAsM\n" +
+                    "CEJlcnNpaFFRMRwwGgYDVQQDDBNCZXJzaWhRUSBMYXVuZHJ5IEFwcDCCASIwDQYJ\n" +
+                    "KoZIhvcNAQEBBQADggEPADCCAQoCggEBALqM5V6hM6+sYQWHq6q1Vx3/8V8lPzK/\n" +
+                    "9Q5Jz8C7xKj4wJ5Q9ZW+T6oqwQ3ZxTvFhJ6/vVZGOp1TvjqWHvh7oO4LEQQXxXs7\n" +
+                    "9QZvY3n9R/4jFUNw5xGZQPt8XK5qJ5vBzUvBGz7IwIXYQQHvgGtZ9Tjik5wHzqx9\n" +
+                    "yGpW8tXvQXGHe+R+64ztYBzXPHGTDj5yQ5yw3lUFwDQa5Yz5gENYLHwevG3pKHhk\n" +
+                    "7PpHzwKCQEbHq/PA0jP4qHBRvL7KzzmX/9D9Q5xhZFi0ZXdAr7b5bzPJQ8nRgCxH\n" +
+                    "rIePqyYyoJ5R4JXvysCcai5SjZ8eVE8nYxvYXEGZGJMVvGtZD+UCAwEAAaNTMFEw\n" +
+                    "HQYDVR0OBBYEFHcY+hqICPLB3IHuYUzakCmKz4ePMB8GA1UdIwQYMBaAFHcY+hqI\n" +
+                    "CPLB3IHuYUzakCmKz4ePMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQAD\n" +
+                    "ggEBADiN0iFHkwxzz9IBt6P2XzYUjP4XBRbABNjKrYoOGGCy6P7mcZdpMk5OUhHy\n" +
+                    "p5iLz+GZJgz1Tz+HfPutCGWgYv8AJOkZjNg7nOIuS7s1HTzvQnVGvZhHhBqhXzuX\n" +
+                    "ZEDNqoQXqPzQFxbAwhQZoSi9/fYwZncXwWbZVFgxFTEDIGSZqn4ZnKEiFqBk1oWz\n" +
+                    "bV8s6ViF3zRKj4UCZuC5XyZEBi8jyZc/XcBUXmPtKD7Ds3tCGEqeVwZgLKsCXX+J\n" +
+                    "JGCkwb/FuLxJ6Ku5THwfvqxHFAIt/5BOEpPMOvwIyQUNY2lrKHxPAeXXhYAyqOJr\n" +
+                    "RnPf9LqXx2RBpX8TiIGGGNq5fHmqHXs=\n" +
+                    "-----END CERTIFICATE-----";
+
+                const privateKey = "-----BEGIN PRIVATE KEY-----\n" +
+                    "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6jOVeoTOvrGEF\n" +
+                    "h6uqtVcd//FfJT8yv/UOSc/Au8So+MCeUPWVvk+qKsEN2cU7xYSev71WRjqdU746\n" +
+                    "lh74e6DuCxEEF8V7O/UGb2N5/Uf+IxVDcOcRmUD7fFyuaiebwc1LwRs+yMCF2EEB\n" +
+                    "74BrWfU44pOcB86sfchqVvLV70Fxh3vkfuuM7WAc1zxxkw4+ckOcsN5VBcA0GuWM\n" +
+                    "+YBDWCx8Hrxt6Sh4ZOz6R88CgkBGx6vzwNIz+KhwUby+ys85l//Q/UOcYWRYtGV3\n" +
+                    "QK+2+W8zyUPJ0YAsR6yHj6smMqCeUeCV78rAnGouUo2fHlRPJ2Mb2FxBmRiTFbxr\n" +
+                    "WQ/lAgMBAAECggEABWzxS1Y2/4oYyW3MAF/U6GXzqHqPHmwBjDkYBuig+kT10kHj\n" +
+                    "CA6LKR/JyqC7qkSFVZYtFkxYZg6ZvB6QoRCEQsnHzwVVBPHADq+Zh9kuQMSxOYMI\n" +
+                    "B/U7NWFhbpgYkqtZWWCfzhlT+YfC4Y7AYQQnz4LKy1aDe5FZhzYGBAmB4inhD7Wd\n" +
+                    "FsBcov7qZ2wqkKrxp4HKxScgRQWxTYGo2BKhlHI2yfcDhTzXpv+gI5GqcMEVR9Kn\n" +
+                    "b5nRUW0XG8VoEwP5NkYhvh6REZTjD1fCCQp51lNGO+IJXEXMYHZUQqzVywMXTvzQ\n" +
+                    "nL5ZOaFxTkpf9VR0Ry5PYE+PmC+3HB3uZXCDeIIAAQKBgQDiQ6Q1TiVxnHJYXkzD\n" +
+                    "T9BvMHAF8lGTQku+TmV35GXYvI2sBV9SDi3S9QIXEqg1JYm2jwyQXbFgTJ8lBMxJ\n" +
+                    "2zQDBNYhj7TZ0oaFWY4KJHoUlHYYdw0YxB1nFUz9Z8F8lLyXYF0XWDjKHVhGHAYK\n" +
+                    "e9j0AB6FTuMyF/HB0tJl5qNyZQKBgQDTJN/OhP3Y9JxCBCyZGQs+IR3QCXIR+PvR\n" +
+                    "GHoFJzRh2Zc0gKr5PW1kZBMNtGbFH1Y5u1YoXHQ2yU5yCkHYGVb8zYFDzDhqJ2Cy\n" +
+                    "YG4xV5DqEqnzWFGtYpGqeXAvHtYCYDmkTkGbHv8NlLR7JbZh84lzIXFj0EKr7Xr3\n" +
+                    "Pu8i0LvAAQKBgDJxfp8TIqJBXQmzGtZQvjOZXxAZXhEWJL0ZZoqAprYQsmqO1/FG\n" +
+                    "Q8zUFhbkMAHvVyCQFGg5Z0i3CmANnXEbf66UGwwF5A5E3nrGd8BKOKnEQKrPCBXy\n" +
+                    "fxTGjHW2qFrHKcmzxU3oqS8WN7nGp7JPYmZmzqxjQYWPHNUZ6wJ1n1+VAoGBAKGj\n" +
+                    "VJwwFj1FFbDYPKHbQkUvGHKkb+Us8/oHyFXbDzZpJJ6dYgCTF3jfGNXyLHBHAeh5\n" +
+                    "6T3uXc5IvxqkzFOLnQz7jCGgKHNEQMRxE0ZQYwBKjvhh7vKhMXxpzBJR0WE+c8Nm\n" +
+                    "fXtG8I1QYJUFLGNvWY+KP8M+SnYxPdbpRYXQcwABAoGAcMhPUAwHvzzYPVHyB8bH\n" +
+                    "Hl9wwF8arTNyUxQxCTCxARnEwEsB7bzrKcjQSx5JO6WXiQTgz8E/4yC0qxoEM8L3\n" +
+                    "2GSnQGPAUOGAzYG6PJTmhXlB8EzS1sBDzwwX9tpQAFN5BwX9GYXr1RMSQmzt8GHx\n" +
+                    "J5ID9WJq1Nv2ebGGGvIEVTg=\n" +
+                    "-----END PRIVATE KEY-----";
+
+                // Set up certificate promise
+                qz.security.setCertificatePromise(function(resolve, reject) {
+                    resolve(certificate);
+                });
+
+                // Set up signing promise
+                qz.security.setSignaturePromise(function(toSign) {
+                    return function(resolve, reject) {
+                        try {
+                            var pk = new RSAKey();
+                            pk.readPrivateKeyFromPEMString(privateKey);
+
+                            var sig = new KJUR.crypto.Signature({
+                                "alg": "SHA512withRSA"
+                            });
+                            sig.init(pk);
+                            sig.updateString(toSign);
+                            var hex = sig.sign();
+                            resolve(KJUR.stob64(KJUR.hextobin(hex)));
+                        } catch (err) {
+                            console.error(err);
+                            reject(err);
+                        }
+                    };
+                });
+
+                // Connect to QZ Tray
+                await qz.websocket.connect({
+                    host: ['localhost', '127.0.0.1'],
+                    port: [8182, 8181, 8282, 8383, 8484],
+                    keepAlive: 60,
+                    retries: 3,
+                    delay: 1
+                });
+
+                qzReady = true;
+                console.log("QZ Tray connected successfully");
+
+                // Find printers after connection
+                await findDefaultPrinter();
+
+                // Update UI to show connected status
+                const statusIndicator = document.getElementById('qz-status-indicator');
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = `
+                        <svg class="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-sm text-green-700">QZ Tray terhubung</span>
+                    `;
+                    statusIndicator.classList.remove('bg-gray-100');
+                    statusIndicator.classList.add('bg-green-50');
+                }
+
+                return true;
+            } catch (err) {
+                console.error("Failed to initialize QZ Tray:", err);
+
+                // Update UI to show error status
+                const statusIndicator = document.getElementById('qz-status-indicator');
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = `
+                        <svg class="h-5 w-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <span class="text-sm text-red-700">QZ Tray tidak terhubung</span>
+                    `;
+                    statusIndicator.classList.remove('bg-gray-100');
+                    statusIndicator.classList.add('bg-red-50');
+                }
+
+                return false;
+            }
+        }
+
+        // Load QZ Tray library
+        function loadQZScript() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://localhost:8181/qz-tray.js';
+                script.async = true;
+                script.onload = resolve;
+                script.onerror = () => {
+                    console.error("Failed to load QZ Tray from localhost, trying backup source...");
+                    script.src = 'https://cdn.jsdelivr.net/gh/qzind/tray@2.2.2/js/qz-tray.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // Start initialization when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("Page loaded, starting QZ Tray initialization...");
+            try {
+                await loadQZScript();
+                await initQZTray();
+            } catch (err) {
+                console.error("Failed to load QZ Tray:", err);
+                alert("Failed to load QZ Tray. Please make sure QZ Tray is installed and running.");
+            }
+        });
+
+        // Add window error handler
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            if (msg.includes('qz')) {
+                console.error('QZ Tray Error:', msg);
+                return false;
+            }
+            return false;
+        };
+    </script>
 </head>
 
 <body class="bg-gradient-custom-light min-h-screen" x-data>
